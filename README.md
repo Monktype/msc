@@ -7,9 +7,11 @@ Currently, it supports creating polls and sending announcements, with plans for 
 
 To install the application, clone the repository and build it using Go:
 
-`git clone https://github.com/monktype/msc.git`
-`cd msc`
-`go build .`
+```
+git clone https://github.com/monktype/msc.git
+cd msc
+go build .
+```
 
 (outputs binary in the current directory)
 
