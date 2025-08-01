@@ -1,0 +1,21 @@
+# Go build artifacts
+msc-*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace files
+*.mod
+*.sum
+
+# IDE and editor files
+*.swp
+*.swo
+*.swn
+*.tmp
+*.bak
+*.orig
