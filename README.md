@@ -1,7 +1,7 @@
 # msc (Monktype's Stream Commands)
 
 `msc` is a hacky command-line utility designed to perform various Twitch-related channel and moderation functions using the Twitch API.
-Currently, it supports creating polls and sending announcements, with plans for further expansion.
+Currently, it supports creating polls, sending announcements, and more (see below) with plans for further expansion.
 
 ## Installation
 
@@ -177,6 +177,7 @@ I'm still working on expanding the functions in this!
 ### Probable Next Additions
 - Blocked Terms
 - Channel Point Redeems
+- Predictions
 
 ## License
 
