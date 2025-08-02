@@ -1,4 +1,5 @@
 # Go build artifacts
+msc
 msc-*
 *.exe
 *.exe~

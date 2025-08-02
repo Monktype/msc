@@ -15,8 +15,8 @@ var pollCmd = &cobra.Command{
 			fmt.Printf("At least 2 poll options are required, only %d provided.\n", len(args))
 			return fmt.Errorf("give the right number of arguments")
 		}
-		if len(args) > 10 {
-			fmt.Printf("At most 10 poll options are allowed, %d provided.\n", len(args))
+		if len(args) > 5 {
+			fmt.Printf("At most 5 poll options are allowed, %d provided.\n", len(args))
 			return fmt.Errorf("give the right number of arguments")
 		}
 

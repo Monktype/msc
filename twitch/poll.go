@@ -33,6 +33,10 @@ func CreatePoll(c helix.Client, channelID string, title string, durationInSecond
 		fmt.Printf("Creating a poll failed: %s\n", err)
 		return "", err
 	}
+	if poll.StatusCode >= 300 {
+		fmt.Printf("Status code was bad: %v\n", poll)
+		return "", fmt.Errorf("check status code information")
+	}
 
 	fmt.Printf("Poll created with ID: %s\n", poll.Data.Polls[0].ID)
 	return poll.Data.Polls[0].ID, nil
@@ -45,10 +49,13 @@ func GetPolls(c helix.Client, channelID string) ([]helix.Poll, error) {
 	polls, err := c.GetPolls(&helix.PollsParams{
 		BroadcasterID: channelID,
 	})
-
 	if err != nil {
 		fmt.Printf("Failed to get polls on channel ID %s: %s\n", channelID, err)
 		return emptyPollResponse, err
+	}
+	if polls.StatusCode >= 300 {
+		fmt.Printf("Status code was bad: %v\n", polls)
+		return emptyPollResponse, fmt.Errorf("check status code information")
 	}
 
 	return polls.Data.Polls, nil
@@ -185,7 +192,7 @@ func WatchPollCompletion(c helix.Client, channelID string, pollID string) (strin
 // Takes a Client, the string of the channel ID, and the string of the poll ID.
 // Returns error.
 func EndPoll(c helix.Client, channelID string, pollID string) error {
-	_, err := c.EndPoll(&helix.EndPollParams{
+	resp, err := c.EndPoll(&helix.EndPollParams{
 		BroadcasterID: channelID,
 		ID:            pollID,
 		Status:        "TERMINATED",
@@ -193,6 +200,10 @@ func EndPoll(c helix.Client, channelID string, pollID string) error {
 	if err != nil {
 		fmt.Printf("Failed to terminate poll: %s\n", err)
 		return err
+	}
+	if resp.StatusCode >= 300 {
+		fmt.Printf("Status code was bad: %v\n", resp)
+		return fmt.Errorf("check status code information")
 	}
 
 	return nil

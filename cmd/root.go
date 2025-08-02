@@ -23,6 +23,7 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
+// Like... I could separate these, but I can't be bothered right now.
 func init() {
 	rootCmd.AddCommand(versionCmd)
 	setupCmd.Flags().BoolP("no-auth", "n", false, "Skip trying to authenticate after running setup.")
@@ -45,6 +46,54 @@ func init() {
 	announcementCmd.MarkFlagRequired("channel-name")
 	announcementCmd.Flags().StringP("border-color", "b", "primary", "Border color (primary, blue, green, orange, purple)")
 	rootCmd.AddCommand(announcementCmd)
+	shoutoutCmd.Flags().StringP("channel-name", "c", "", "Channel name to send shoutout")
+	shoutoutCmd.MarkFlagRequired("channel-name")
+	shoutoutCmd.Flags().StringP("shoutout-name", "s", "", "Shoutout name")
+	shoutoutCmd.MarkFlagRequired("shoutout-name")
+	rootCmd.AddCommand(shoutoutCmd)
+	startadCmd.Flags().StringP("channel-name", "c", "", "Channel name to start ads")
+	startadCmd.MarkFlagRequired("channel-name")
+	startadCmd.Flags().IntP("length", "l", 60, "Ad length in seconds (30, 60, 90, 120, 150, 180)")
+	startadCmd.MarkFlagRequired("length")
+	rootCmd.AddCommand(startadCmd)
+	rootCmd.AddCommand(emoteonlyCmd)
+	emoteonlyOnCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	emoteonlyOnCmd.MarkFlagRequired("channel-name")
+	emoteonlyCmd.AddCommand(emoteonlyOnCmd)
+	emoteonlyOffCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	emoteonlyOffCmd.MarkFlagRequired("channel-name")
+	emoteonlyCmd.AddCommand(emoteonlyOffCmd)
+	rootCmd.AddCommand(followeronlyCmd)
+	followeronlyOnCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	followeronlyOnCmd.MarkFlagRequired("channel-name")
+	followeronlyCmd.AddCommand(followeronlyOnCmd)
+	followeronlyOffCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	followeronlyOffCmd.MarkFlagRequired("channel-name")
+	followeronlyCmd.AddCommand(followeronlyOffCmd)
+	followeronlyDurationCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	followeronlyDurationCmd.MarkFlagRequired("channel-name")
+	followeronlyDurationCmd.Flags().IntP("duration", "d", 0, "Duration in minutes (0..129600)")
+	followeronlyDurationCmd.MarkFlagRequired("duration")
+	followeronlyCmd.AddCommand(followeronlyDurationCmd)
+	rootCmd.AddCommand(slowmodeCmd)
+	slowmodeOnCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	slowmodeOnCmd.MarkFlagRequired("channel-name")
+	slowmodeCmd.AddCommand(slowmodeOnCmd)
+	slowmodeOffCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	slowmodeOffCmd.MarkFlagRequired("channel-name")
+	slowmodeCmd.AddCommand(slowmodeOffCmd)
+	slowmodeDurationCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	slowmodeDurationCmd.MarkFlagRequired("channel-name")
+	slowmodeDurationCmd.Flags().IntP("duration", "d", 0, "Duration in seconds (3..120)")
+	slowmodeDurationCmd.MarkFlagRequired("duration")
+	slowmodeCmd.AddCommand(slowmodeDurationCmd)
+	rootCmd.AddCommand(submodeCmd)
+	submodeOnCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	submodeOnCmd.MarkFlagRequired("channel-name")
+	submodeCmd.AddCommand(submodeOnCmd)
+	submodeOffCmd.Flags().StringP("channel-name", "c", "", "Target channel name")
+	submodeOffCmd.MarkFlagRequired("channel-name")
+	submodeCmd.AddCommand(submodeOffCmd)
 }
 
 var versionCmd = &cobra.Command{
@@ -55,7 +104,7 @@ var versionCmd = &cobra.Command{
 		if version == "" {
 			fmt.Printf("It looks like this is a development build; no version tagged.\n")
 		} else {
-            // This can be set with `go build -ldflags "-X 'github.com/monktype/msc/cmd.version=${VERSION}'"` during build.
+			// This can be set with `go build -ldflags "-X 'github.com/monktype/msc/cmd.version=${VERSION}'"` during build.
 			fmt.Printf("Version: %s\n", version)
 		}
 	},

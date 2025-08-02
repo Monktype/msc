@@ -40,8 +40,9 @@ Please note that the authentication key needs to be re-authenticated occasionall
 
 `msc authenticate`
 
-The exact duration for how long these keys last is still being determined, but it's less than a few days.
+The duration of these access tokens from Twitch are about one day.
 You can re-authenticate to get a fresh key before your previous key expires.
+Errors do not necessarily get returned when the token has expired.
 
 ## Commands
 
@@ -69,7 +70,7 @@ Retrieves the user ID associated with the account in the arguments.
 The above command returns `Username djclancy = ID 268669435`
 
 ### Poll Command
-Creates a new poll in a specified channel. The command requires standalone string arguments (between 2 to 10).
+Creates a new poll in a specified channel. The command requires standalone string arguments (between 2 to 5).
 
 #### Flags:
 - `-c`, `--channel-name`: **(Required)** Target channel name.
@@ -94,10 +95,88 @@ Sends an announcement to a specified channel. Every string argument is passed as
 #### Example:
 `msc announcement --channel-name djclancy --border-color blue "This is an announcement!"`
 
+### Shoutout Command
+Shoutout a specified channel on a specified channel.
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name (location of shoutout).
+- `-s`, `--shoutout-name`: **(Required)** Channel to shoutout.
+
+### Start-Ad Command
+Start advertisements / commercials on a specific channel.
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name.
+- `-l`, `--length`: Length in seconds: 30, 60, 90, 120, 150, or 180; defaults to 60.
+
+### Emote Only Mode Commands
+Two commands related to Emote Only mode:
+- `on`: Turn on Emote Only mode.
+- `off`: Turn off Emote Only mode.
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name.
+
+#### Examples:
+`msc emote-only -c djclancy on`
+
+`msc emote-only -c djclancy off`
+
+### Subscribers Only Mode Commands
+Two commands related to Subscribers Only mode:
+- `on`: Turn on Subscribers Only mode.
+- `off`: Turn off Subscribers Only mode.
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name.
+
+#### Examples:
+`msc submode -c djclancy on`
+
+`msc submode -c djclancy off`
+
+### Follower Only Mode Commands
+Three commands related to Followers Only mode:
+- `on`: Turn on Follower Only mode.
+- `off`: Turn off Follower Only mode.
+- `duration`: Turn on Follower Only mode (if off) with a specified duration in minutes.
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name.
+- `-d`, `--duration`: **(Required for `duration`)** Duration in minutes (0..129600 valid).
+
+#### Examples:
+`msc follower-only -c djclancy on`
+
+`msc follower-only -c djclancy off`
+
+`msc follower-only -c djclancy duration -d 15` (turns on Follower Only mode on djclancy's channel with a 15 minute wait time)
+
+### Slow Mode Commands
+Three commands related to Slowmode:
+- `on`: Turn on Slowmode.
+- `off`: Turn off Slowmode.
+- `duration`: Turn on Slowmode (if off) with a specified duration in seconds.
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name.
+- `-d`, `--duration`: **(Required for `duration`)** Duration in seconds (3..120 valid).
+
+#### Examples:
+`msc slowmode -c djclancy on`
+
+`msc slowmode -c djclancy off`
+
+`msc slowmode -c djclancy duration -d 15` (turns on Slowmode on djclancy's channel with a 15 second chat cooldown)
+
 ## Contributing
 
 Feel free to submit issues or pull requests to improve the project.
 I'm still working on expanding the functions in this!
+
+### Probable Next Additions
+- Blocked Terms
+- Channel Point Redeems
 
 ## License
 
