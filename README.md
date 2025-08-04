@@ -15,7 +15,7 @@ go build .
 
 (outputs binary in the current directory)
 
-I may also try to keep binaries build in the "Releases" tab to the right -->
+I may also try to keep binaries built in the "Releases" tab to the right -->
 
 ## Usage
 
@@ -24,7 +24,37 @@ After building the application, you can run it from the command line using the c
 
 ## Setup
 
-To use `msc`, you need to set up an application Twitch API key at `https://dev.twitch.tv` of type "public" (you can make the catagory "Application Integration" if you want).
+To use `msc`, you need to set up an application Twitch API key at `https://dev.twitch.tv`.
+
+There are two different methods depending on your setup:
+
+#### Authorization Code Grant Flow
+Pros: Re-authentication happens automatically / requires less frequent human re-authentication.
+
+Cons: Requires copying in a secret, too.
+
+Create a key of type "confidential" (you can make the catagory "Application Integration" if you want).
+Redirect to `http://localhost:3024/redirect`.
+
+Both the client ID and a client secret are necessary for this configuration.
+
+After obtaining the client ID and the client secret, run the following command to set it up with the application:
+
+`msc setup -i <client-id> -s`
+
+You will be prompted within the application to input the secret.
+
+By default, the application will attempt to authenticate after setup.
+It will provide you with a link to authenticate against Twitch.
+Your client-id, secret, refresh token, etc are all stored in your OS's keyring.
+
+#### Implicit Grant Flow
+Pros: Only a client ID needs to be copied into the client.
+
+Cons: Re-authentication needs to happen about once a day.
+
+Create a key of type "public" (you can make the catagory "Application Integration" if you want).
+Redirect to `http://localhost:3024/redirect`.
 Only the client ID is required for setup.
 
 After obtaining your client ID, run the following command to set it up with the application:
@@ -52,11 +82,12 @@ Displays the current version of the application *if built with a tag*.
 `msc version`
 
 ### Setup Command
-Sets up the application with the required client ID from the Twitch Developer portal.
+Sets up the application with the required client ID and any other required components (see above) from the Twitch Developer portal.
 
 #### Flags:
 - `-n`, `--no-auth`: Skip trying to authenticate after running setup.
 - `-i`, `--client-id`: **(Required)** Client ID from the Twitch Dev portal.
+- `-s`, `--secret`: Add a secret for code authentication instead of token authentication.
 
 #### Example:
 See Setup section above.
@@ -169,14 +200,37 @@ Three commands related to Slowmode:
 
 `msc slowmode -c djclancy duration -d 15` (turns on Slowmode on djclancy's channel with a 15 second chat cooldown)
 
+### Channel Points Custom Redeems Commands
+Six commands related to Channel Poitns Custom Redeems:
+- `cancel`: Cancel a redemption instance, refunding the user.
+- `create`: Create a channel point reward.
+- `delete`: Delete a channel point reward.
+- `fulfill`: Fulfill a redemption instance.
+- `get`: Get Channel Point Rewards for channel.
+- `redemptions`: Get channel point redemptions.
+
+#### Flags:
+Many; see `--help` for each subcommand above.
+
+#### Examples:
+`msc reward create -c djclancy -t "Poetry Slam" -p 1000 -i -u "Write a poem here and I'll read it out loud."`
+
+`msc reward get -c djclancy`
+
+`msc reward redemptions -c djclancy -r 25b0b2e2-7800-407c-a52b-9864ba6f6565 -s UNFULFILLED`
+
+`msc reward fulfill -c djclancy -r 25b0b2e2-7800-407c-a52b-9864ba6f6565 -i 1f8ae074-28b6-428e-b745-dc25903848c8`
+
+`msc reward delete -c djclancy -r 25b0b2e2-7800-407c-a52b-9864ba6f6565`
+
 ## Contributing
 
-Feel free to submit issues or pull requests to improve the project.
-I'm still working on expanding the functions in this!
+Feel free to submit issues or pull requests to improve the project!
+
+If you plan to poke at this project, take note that this project is using a [temporary forked library](https://github.com/Monktype/helix) until [an upstream PR](https://github.com/nicklaw5/helix/pull/244) is merged.
 
 ### Probable Next Additions
 - Blocked Terms
-- Channel Point Redeems
 - Predictions
 
 ## License

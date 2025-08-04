@@ -66,6 +66,9 @@ func StartCallbackServer(state string, responseChan chan<- CallbackResponse, shu
 			}
 		} else {
 			accessToken := params.Get("access_token")
+			if accessToken == "" { // if it's a code flow and not a token flow.
+				accessToken = params.Get("code")
+			}
 			responseChan <- CallbackResponse{
 				AccessToken: accessToken,
 			}

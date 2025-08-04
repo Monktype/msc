@@ -10,7 +10,6 @@ msc-*
 *.out
 
 # Go workspace files
-*.mod
 *.sum
 
 # IDE and editor files
