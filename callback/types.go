@@ -1,4 +1,4 @@
-package server
+package callback
 
 type Parameters struct {
 	ClientID     string `json:"client_id"`

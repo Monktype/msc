@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/monktype/msc/callback"
 	"github.com/monktype/msc/keys"
-	"github.com/monktype/msc/server"
 	"github.com/nicklaw5/helix/v2"
 )
 
@@ -38,11 +38,11 @@ func Authenticate(authType AuthType) error {
 		return err
 	}
 
-	responseChan := make(chan server.CallbackResponse)
+	responseChan := make(chan callback.CallbackResponse)
 	shutdownChan := make(chan bool)
 
 	go func() {
-		err := server.StartCallbackServer(state, responseChan, shutdownChan)
+		err := callback.StartCallbackServer(state, responseChan, shutdownChan)
 		if err != nil {
 			log.Fatalf("Failed to start callback server: %s\n", err)
 		}
