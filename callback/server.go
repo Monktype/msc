@@ -6,6 +6,9 @@ import (
 	"net/url"
 )
 
+// This is updated from the cmd package, but I'm setting this default here in case msc is used as a library elsewhere without this being updated by it.
+var CallbackPort int = 3024
+
 const redirectHTML = `
 <!DOCTYPE html>
 <html lang="en">
@@ -78,7 +81,8 @@ func StartCallbackServer(state string, responseChan chan<- CallbackResponse, shu
 		fmt.Fprintln(w, "Callback received successfully.\nYou may close this tab or window.")
 	})
 
-	server := &http.Server{Addr: ":3024"}
+	callbackAddr := fmt.Sprintf("localhost:%d", CallbackPort)
+	server := &http.Server{Addr: callbackAddr}
 
 	go func() {
 		<-shutdownChan

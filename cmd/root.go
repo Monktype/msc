@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/monktype/msc/callback"
 	"github.com/spf13/cobra"
 )
 
@@ -25,6 +26,16 @@ func Execute() error {
 
 // Like... I could separate these, but I can't be bothered right now.
 func init() {
+	// --- Before other flags, get the global flags read and set. ---
+	var callbackPort int
+	rootCmd.PersistentFlags().IntVar(&callbackPort, "callback-port", 3024, "Twitch->msc authentication callback port if default can't be used")
+
+	// Set the PreRun to update the CallbackPort
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		callback.CallbackPort = callbackPort
+	}
+
+	// --- Call-specific flags now ---
 	rootCmd.AddCommand(versionCmd)
 	setupCmd.Flags().BoolP("no-auth", "n", false, "Skip trying to authenticate after running setup.")
 	setupCmd.Flags().BoolP("secret", "s", false, "Add a secret for code authentication instead of token authentication.")
@@ -135,6 +146,8 @@ func init() {
 	rewardsfulfillCmd.Flags().StringP("redemption", "i", "", "Redemption ID (UUID). This is the redeemed reward instance.")
 	rewardsfulfillCmd.MarkFlagRequired("redemption")
 	rewardsCmd.AddCommand(rewardsfulfillCmd)
+	startApiCmd.Flags().IntP("port", "p", 8080, "Port for API server")
+	rootCmd.AddCommand(startApiCmd)
 }
 
 var versionCmd = &cobra.Command{

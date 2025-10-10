@@ -2,14 +2,25 @@ package twitch
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/monktype/msc/keys"
 	"github.com/nicklaw5/helix/v2"
 )
 
+var getClientLock sync.Mutex
+
 // Create a Helix (Twitch) client, return the usable client struct (helix.Client) and error.
 func GetClient() (helix.Client, error) {
 	secretPresent := false
+
+	// This resolves a potential key refresh race condition when multiple clients reach the tool's API server
+	// when a key refresh is necessary. It does, however, mean that only one GetClient instance can run at a time
+	// which might add some wait time.
+	// It does not resolve two or more instances of this tool running and finding an invalid key at the same time,
+	// that's still a possible race condition.
+	getClientLock.Lock()
+	defer getClientLock.Unlock()
 
 	// This is to check for the existence of "client-secret" in the keychain to decide what to do if the validation fails.
 	clientsecret, err := keys.GetKey("client-secret")
@@ -38,7 +49,6 @@ func GetClient() (helix.Client, error) {
 		return helix.Client{}, err
 	}
 
-	//
 	isValid, resp, err := client.ValidateToken(accessToken)
 	if err != nil {
 		fmt.Printf("Token validation failed: %s\n", err)
