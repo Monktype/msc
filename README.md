@@ -74,6 +74,12 @@ The duration of these access tokens from Twitch are about one day.
 You can re-authenticate to get a fresh key before your previous key expires.
 Errors do not necessarily get returned when the token has expired.
 
+**Note (new scopes):** the set of OAuth scopes `msc` requests has been expanded
+(moderation scopes for ban management and scopes for predictions were added).
+You'll need to re-authenticate **once** — run `msc authenticate`, or re-run `msc setup` —
+so the token stored in your keyring picks up all of the new scopes at once.
+Subsequent token refreshes will keep those scopes; you do not need to re-auth for each one.
+
 ## Commands
 
 ### Version Command
@@ -115,6 +121,39 @@ Creates a new poll in a specified channel. The command requires standalone strin
 `msc poll -c djclancy -d 15 -t "Yes or no?" "Yes" "No"`
 
 This creates a 15-second poll on djclancy's channel with "Yes" and "No" as options.
+
+### Prediction Command
+Creates a new prediction in a specified channel. The command requires exactly 2 standalone string arguments (the two outcome choices). A prediction does not close itself — once created, end it with the `resolve` subcommand (pick a winner) or the `cancel` subcommand (refund channel points). Use the `lock` subcommand to close the prediction window early (stop accepting new predictions before the timer runs out, without picking a winner or refunding).
+
+#### Flags:
+- `-c`, `--channel-name`: **(Required)** Target channel name.
+- `-d`, `--window`: **(Required)** Prediction window in seconds (1..1800).
+- `-t`, `--title`: **(Required)** Title for the prediction.
+
+#### Subcommands:
+- `resolve`: Pick the winning outcome (channel points are awarded to those who predicted it).
+  - `-c`, `--channel-name`: **(Required)** Target channel name.
+  - `-i`, `--prediction-id`: **(Required)** Prediction ID (printed by the create command).
+  - `-o`, `--outcome`: **(Required)** Winning outcome: `1` or `2`, or the outcome's title.
+- `cancel`: Cancel the prediction with no winner (channel points are refunded).
+  - `-c`, `--channel-name`: **(Required)** Target channel name.
+  - `-i`, `--prediction-id`: **(Required)** Prediction ID.
+- `lock`: Lock a running prediction early, closing the window so no more predictions are accepted (no winner, no refund; it can still be resolved afterward).
+  - `-c`, `--channel-name`: **(Required)** Target channel name.
+  - `-i`, `--prediction-id`: **(Required)** Prediction ID.
+
+#### Examples:
+`msc prediction -c djclancy -d 30 -t "Will the next clip be a highlight?" "Yes" "No"`
+
+This creates a 30-second prediction on djclancy's channel with "Yes" and "No" as the two outcomes. It prints the prediction ID, the numbered outcomes, and the exact `resolve`/`cancel`/`lock` commands to close it out.
+
+`msc prediction resolve -c djclancy -i <prediction-id> --outcome Yes` (pick the "Yes" outcome as the winner)
+
+`msc prediction resolve -c djclancy -i <prediction-id> --outcome 2` (pick the second outcome by index)
+
+`msc prediction cancel -c djclancy -i <prediction-id>` (cancel, refunding channel points)
+
+`msc prediction lock -c djclancy -i <prediction-id>` (lock the window early, stopping new entries before the timer ends)
 
 ### Announcement Command
 Sends an announcement to a specified channel. Every string argument is passed as text in the announcement.
@@ -223,15 +262,40 @@ Many; see `--help` for each subcommand above.
 
 `msc reward delete -c djclancy -r 25b0b2e2-7800-407c-a52b-9864ba6f6565`
 
+### Ban Commands
+Three commands related to banning and timing out users. Note that the "banned" list returned by the API also includes timed-out users (a timeout is a ban with an expiry, while a perma-ban has no expiry).
+- `list`: List banned and timed-out users.
+- `add`: Ban or time out a user.
+- `remove`: Remove a ban or timeout.
+
+#### Flags:
+- `list`: `-c`, `--channel-name` **(Required)**; optional `-a`, `--after` pagination cursor; optional `-A`, `--all` to fetch every page and list all banned/timed-out users (ignores `-a`).
+- `add`: `-c`, `--channel-name` **(Required)**; give either `-u`, `--user` (username) or `--user-id` (raw ID); `-d`, `--duration` timeout in seconds (0 or omitted = perma-ban); `-r`, `--reason` ban reason.
+- `remove`: `-c`, `--channel-name` **(Required)**; give either `-u`, `--user` (username) or `--user-id` (raw ID, for when the username no longer resolves).
+
+#### Examples:
+`msc ban list -c djclancy`
+
+`msc ban list -c djclancy -A` (list every banned/timed-out user across all pages)
+
+`msc ban add -c djclancy -u offender -d 600 -r "Spamming"` (600-second timeout)
+
+`msc ban add -c djclancy -u offender` (perma-ban, since no duration is given)
+
+`msc ban add -c djclancy --user-id 268669435 -d 600` (time out by ID — use when the username no longer resolves)
+
+`msc ban remove -c djclancy -u offender`
+
+`msc ban remove -c djclancy --user-id 268669435` (remove a ban by ID — use when the user no longer resolves by name; grab the ID from `ban list`'s `[id]` field)
+
+Note: there is no batch-unban in the Twitch API, so removing many users means one (rate-limited) call per user.
+
 ## Contributing
 
 Feel free to submit issues or pull requests to improve the project!
 
-If you plan to poke at this project, take note that this project is using a [temporary forked library](https://github.com/Monktype/helix) until [an upstream PR](https://github.com/nicklaw5/helix/pull/244) is merged.
-
 ### Probable Next Additions
 - Blocked Terms
-- Predictions
 
 ## License
 

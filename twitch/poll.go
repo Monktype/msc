@@ -8,7 +8,7 @@ import (
 
 // CreatePoll creates a Twitch poll with the given title, duration, and options.
 // Returns a poll ID and error.
-func CreatePoll(c helix.Client, channelID string, title string, durationInSeconds int, options []string) (string, error) {
+func CreatePoll(c *helix.Client, channelID string, title string, durationInSeconds int, options []string) (string, error) {
 	// Convert options to a slice of PollChoiceParam
 	var pollChoices []helix.PollChoiceParam
 	for _, option := range options {
@@ -39,7 +39,7 @@ func CreatePoll(c helix.Client, channelID string, title string, durationInSecond
 }
 
 // GetPolls gets polls from a channel ID.
-func GetPolls(c helix.Client, channelID string) ([]helix.Poll, error) {
+func GetPolls(c *helix.Client, channelID string) ([]helix.Poll, error) {
 	var emptyPollResponse []helix.Poll
 
 	polls, err := c.GetPolls(&helix.PollsParams{
@@ -62,7 +62,7 @@ func GetPolls(c helix.Client, channelID string) ([]helix.Poll, error) {
 // the upstream library doesn't seem to implement their code in that way and I don't
 // see an immediate need to request multiple specific polls in a single call right
 // now, so I'm not going to try to change that upstream.
-func GetPoll(c helix.Client, channelID string, pollID string) (helix.Poll, error) {
+func GetPoll(c *helix.Client, channelID string, pollID string) (helix.Poll, error) {
 	var emptyPollResponse helix.Poll
 
 	polls, err := c.GetPolls(&helix.PollsParams{
@@ -88,7 +88,7 @@ func GetPoll(c helix.Client, channelID string, pollID string) (helix.Poll, error
 // EndPoll terminates a poll.
 // Takes a Client, the string of the channel ID, and the string of the poll ID.
 // Returns error.
-func EndPoll(c helix.Client, channelID string, pollID string) error {
+func EndPoll(c *helix.Client, channelID string, pollID string) error {
 	resp, err := c.EndPoll(&helix.EndPollParams{
 		BroadcasterID: channelID,
 		ID:            pollID,

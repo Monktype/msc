@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/monktype/msc/twitch"
@@ -28,6 +29,22 @@ func ApiServer(port int) error {
 	r.POST("/slowmode", slowmodeHandler)
 	r.POST("/slowmodeduration", slowmodeDurationHandler)
 	r.POST("/submode", subOnlyModeHandler)
+	r.POST("/reward", createRewardHandler)
+	r.DELETE("/reward", deleteRewardHandler)
+	r.GET("/reward", getRewardsHandler)
+	r.GET("/redemptions", getRedemptionsHandler)
+	r.POST("/redemption/cancel", cancelRedemptionHandler)
+	r.POST("/redemption/fulfill", fulfillRedemptionHandler)
+
+	// Ban management
+	r.GET("/getbanned", getBannedHandler)
+	r.POST("/ban", banHandler)
+	r.POST("/unban", unbanHandler)
+
+	// Predictions
+	r.POST("/createprediction", createPredictionHandler)
+	r.GET("/getpredictions", getPredictionsHandler)
+	r.POST("/endprediction", endPredictionHandler)
 
 	listenAddr := fmt.Sprintf("localhost:%d", port)
 	if err := r.Run(listenAddr); err != nil {
@@ -345,13 +362,24 @@ func getRedemptionsHandler(c *gin.Context) {
 		return
 	}
 
+	after := c.Query("after")
+	first := 0
+	if firstStr := c.Query("first"); firstStr != "" {
+		var err error
+		first, err = strconv.Atoi(firstStr)
+		if err != nil {
+			errorHandler(c, fmt.Errorf("first parameter must be an integer"))
+			return
+		}
+	}
+
 	client, err := twitch.GetClient()
 	if err != nil {
 		internalErrorHandler(c, err)
 		return
 	}
 
-	redemptions, err := twitch.GetRedemptions(client, channelID, rewardID, status)
+	redemptions, err := twitch.GetRedemptions(client, channelID, rewardID, status, after, first)
 	if err != nil {
 		errorHandler(c, err)
 		return
@@ -720,4 +748,219 @@ func subOnlyModeHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Subscriber only mode set successfully"})
+}
+
+// GET /getbanned?channel_id=&after=&all=true
+func getBannedHandler(c *gin.Context) {
+	channelID := c.Query("channel_id")
+	if channelID == "" {
+		errorHandler(c, fmt.Errorf("channel_id parameter is required"))
+		return
+	}
+
+	after := c.Query("after")
+	all := c.Query("all") == "true"
+
+	client, err := twitch.GetClient()
+	if err != nil {
+		internalErrorHandler(c, err)
+		return
+	}
+
+	if all {
+		bans, err := twitch.GetAllBannedUsers(client, channelID)
+		if err != nil {
+			errorHandler(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, twitch.BannedUsersPage{Bans: bans, Cursor: ""})
+		return
+	}
+
+	page, err := twitch.GetBannedUsers(client, channelID, after)
+	if err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, page)
+}
+
+// POST /ban {channel_id, target_id, duration, reason}
+func banHandler(c *gin.Context) {
+	var request struct {
+		ChannelID string `json:"channel_id" binding:"required"`
+		TargetID  string `json:"target_id" binding:"required"`
+		Duration  int    `json:"duration"`
+		Reason    string `json:"reason"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	client, err := twitch.GetClient()
+	if err != nil {
+		internalErrorHandler(c, err)
+		return
+	}
+
+	moderatorID, err := twitch.GetMyUserID(client)
+	if err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	if err := twitch.BanUser(client, moderatorID, request.ChannelID, request.TargetID, request.Duration, request.Reason); err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User banned/timed out successfully"})
+}
+
+// POST /unban {channel_id, target_id}
+func unbanHandler(c *gin.Context) {
+	var request struct {
+		ChannelID string `json:"channel_id" binding:"required"`
+		TargetID  string `json:"target_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	client, err := twitch.GetClient()
+	if err != nil {
+		internalErrorHandler(c, err)
+		return
+	}
+
+	moderatorID, err := twitch.GetMyUserID(client)
+	if err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	if err := twitch.UnbanUser(client, moderatorID, request.ChannelID, request.TargetID); err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User unbanned successfully"})
+}
+
+// POST /createprediction {channel_id, title, window, choices}
+func createPredictionHandler(c *gin.Context) {
+	var request struct {
+		ChannelID string   `json:"channel_id" binding:"required"`
+		Title     string   `json:"title" binding:"required"`
+		Window    int      `json:"window" binding:"required"`
+		Choices   []string `json:"choices" binding:"required,min=2,max=2"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	if request.Window < 1 || request.Window > 1800 {
+		errorHandler(c, fmt.Errorf("window must be between 1 and 1800 seconds"))
+		return
+	}
+
+	client, err := twitch.GetClient()
+	if err != nil {
+		internalErrorHandler(c, err)
+		return
+	}
+
+	predictionID, err := twitch.CreatePrediction(client, request.ChannelID, request.Title, request.Window, request.Choices)
+	if err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	response := struct {
+		PredictionID string `json:"prediction_id"`
+	}{PredictionID: predictionID}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// GET /getpredictions?channel_id=&after=&all=true
+func getPredictionsHandler(c *gin.Context) {
+	channelID := c.Query("channel_id")
+	if channelID == "" {
+		errorHandler(c, fmt.Errorf("channel_id parameter is required"))
+		return
+	}
+
+	after := c.Query("after")
+	all := c.Query("all") == "true"
+
+	client, err := twitch.GetClient()
+	if err != nil {
+		internalErrorHandler(c, err)
+		return
+	}
+
+	if all {
+		predictions, err := twitch.GetAllPredictions(client, channelID)
+		if err != nil {
+			errorHandler(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, twitch.PredictionsPage{Predictions: predictions, Cursor: ""})
+		return
+	}
+
+	page, err := twitch.GetPredictions(client, channelID, after)
+	if err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, page)
+}
+
+// POST /endprediction {channel_id, prediction_id, status, winning_outcome_id}
+func endPredictionHandler(c *gin.Context) {
+	var request struct {
+		ChannelID        string `json:"channel_id" binding:"required"`
+		PredictionID     string `json:"prediction_id" binding:"required"`
+		Status           string `json:"status" binding:"required,oneof=RESOLVED CANCELED LOCKED"`
+		WinningOutcomeID string `json:"winning_outcome_id"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	client, err := twitch.GetClient()
+	if err != nil {
+		internalErrorHandler(c, err)
+		return
+	}
+
+	// A resolve carries a winning outcome and uses the helix helper; a cancel
+	// (refund) or lock (close the window early) carries no outcome and must omit
+	// winning_outcome_id, so it uses the raw PATCH those twitch funcs wrap.
+	switch request.Status {
+	case "RESOLVED":
+		err = twitch.EndPrediction(client, request.ChannelID, request.PredictionID, request.Status, request.WinningOutcomeID)
+	case "CANCELED":
+		err = twitch.CancelPrediction(request.ChannelID, request.PredictionID)
+	case "LOCKED":
+		err = twitch.LockPrediction(request.ChannelID, request.PredictionID)
+	}
+	if err != nil {
+		errorHandler(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Prediction ended successfully"})
 }

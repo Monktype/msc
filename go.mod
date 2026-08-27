@@ -1,10 +1,10 @@
 module github.com/monktype/msc
 
-go 1.24.4
+go 1.25
 
 require (
 	github.com/gin-gonic/gin v1.11.0
-	github.com/nicklaw5/helix/v2 v2.31.1
+	github.com/nicklaw5/helix/v2 v2.34.0
 	github.com/spf13/cobra v1.10.1
 	github.com/zalando/go-keyring v0.2.6
 )
@@ -49,5 +49,3 @@ require (
 	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
-
-replace github.com/nicklaw5/helix/v2 => github.com/monktype/helix/v2 v2.0.0-20250803060735-f833d5c9704b

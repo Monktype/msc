@@ -79,7 +79,10 @@ func Authenticate(authType AuthType) error {
 			"channel:manage:polls",
 			"channel:manage:predictions",
 			"channel:manage:redemptions",
+			"channel:read:predictions",
+			"moderation:read",
 			"moderator:manage:announcements",
+			"moderator:manage:banned_users",
 			"moderator:manage:blocked_terms",
 			"moderator:manage:chat_settings",
 			"moderator:manage:shoutouts",
@@ -165,7 +168,7 @@ func Authenticate(authType AuthType) error {
 
 // Authenticate is the process to get a user token from Twitch.
 // It requires that the setup process (putting client ID into the keystore) has already taken place.
-func RefreshToken(clientID string, clientSecret string, refreshToken string) (helix.Client, error) {
+func RefreshToken(clientID string, clientSecret string, refreshToken string) (*helix.Client, error) {
 	client, err := helix.NewClient(&helix.Options{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -174,22 +177,22 @@ func RefreshToken(clientID string, clientSecret string, refreshToken string) (he
 	resp, err := client.RefreshUserAccessToken(refreshToken)
 	if err != nil {
 		fmt.Printf("Failed to refresh user access token: %s\n", err)
-		return *client, err
+		return client, err
 	}
 
 	err = keys.AddKey("refresh-token", resp.Data.RefreshToken)
 	if err != nil {
 		fmt.Printf("Failed to push refresh token to keystore: %s\n", err)
-		return *client, err
+		return client, err
 	}
 
 	err = keys.AddKey("access-token", resp.Data.AccessToken)
 	if err != nil {
 		fmt.Printf("Failed to push access token to keystore: %s\n", err)
-		return *client, err
+		return client, err
 	}
 
 	client.SetUserAccessToken(resp.Data.AccessToken)
 
-	return *client, nil
+	return client, nil
 }

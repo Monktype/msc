@@ -24,7 +24,7 @@ var AnnouncementColorMap = map[AnnouncementColor]string{
 	AnnouncementColorPurple:  "purple",
 }
 
-func SendAnnouncement(c helix.Client, userID string, channelID string, color AnnouncementColor, message string) error {
+func SendAnnouncement(c *helix.Client, userID string, channelID string, color AnnouncementColor, message string) error {
 	resp, err := c.SendChatAnnouncement(&helix.SendChatAnnouncementParams{
 		BroadcasterID: channelID,
 		ModeratorID:   userID,
@@ -43,7 +43,7 @@ func SendAnnouncement(c helix.Client, userID string, channelID string, color Ann
 	return nil
 }
 
-func SendShoutout(c helix.Client, userID string, channelID string, targetID string) error {
+func SendShoutout(c *helix.Client, userID string, channelID string, targetID string) error {
 	resp, err := c.SendShoutout(&helix.SendShoutoutParams{
 		FromBroadcasterID: channelID,
 		ToBroadcasterID:   targetID,
@@ -61,7 +61,7 @@ func SendShoutout(c helix.Client, userID string, channelID string, targetID stri
 	return nil
 }
 
-func EmoteOnly(c helix.Client, userID string, channelID string, state bool) error {
+func EmoteOnly(c *helix.Client, userID string, channelID string, state bool) error {
 	resp, err := c.UpdateChatSettings(&helix.UpdateChatSettingsParams{
 		ModeratorID:   userID,
 		BroadcasterID: channelID,
@@ -85,7 +85,7 @@ func EmoteOnly(c helix.Client, userID string, channelID string, state bool) erro
 	return nil
 }
 
-func FollowerOnly(c helix.Client, userID string, channelID string, state bool) error {
+func FollowerOnly(c *helix.Client, userID string, channelID string, state bool) error {
 	resp, err := c.UpdateChatSettings(&helix.UpdateChatSettingsParams{
 		ModeratorID:   userID,
 		BroadcasterID: channelID,
@@ -109,7 +109,7 @@ func FollowerOnly(c helix.Client, userID string, channelID string, state bool) e
 	return nil
 }
 
-func FollowerOnlyDuration(c helix.Client, userID string, channelID string, duration int) error {
+func FollowerOnlyDuration(c *helix.Client, userID string, channelID string, duration int) error {
 	trueFlagBecauseItWantsAVariable := true
 	resp, err := c.UpdateChatSettings(&helix.UpdateChatSettingsParams{
 		ModeratorID:          userID,
@@ -129,7 +129,7 @@ func FollowerOnlyDuration(c helix.Client, userID string, channelID string, durat
 	return nil
 }
 
-func Slowmode(c helix.Client, userID string, channelID string, state bool) error {
+func Slowmode(c *helix.Client, userID string, channelID string, state bool) error {
 	resp, err := c.UpdateChatSettings(&helix.UpdateChatSettingsParams{
 		ModeratorID:   userID,
 		BroadcasterID: channelID,
@@ -153,7 +153,7 @@ func Slowmode(c helix.Client, userID string, channelID string, state bool) error
 	return nil
 }
 
-func SlowmodeDuration(c helix.Client, userID string, channelID string, duration int) error {
+func SlowmodeDuration(c *helix.Client, userID string, channelID string, duration int) error {
 	trueFlagBecauseItWantsAVariable := true
 	resp, err := c.UpdateChatSettings(&helix.UpdateChatSettingsParams{
 		ModeratorID:      userID,
@@ -173,7 +173,7 @@ func SlowmodeDuration(c helix.Client, userID string, channelID string, duration 
 	return nil
 }
 
-func SubOnlyMode(c helix.Client, userID string, channelID string, state bool) error {
+func SubOnlyMode(c *helix.Client, userID string, channelID string, state bool) error {
 	resp, err := c.UpdateChatSettings(&helix.UpdateChatSettingsParams{
 		ModeratorID:    userID,
 		BroadcasterID:  channelID,

@@ -123,7 +123,7 @@ type WatchPollResult struct {
 
 // Internal watchPollCompletion worker function (for terminating the poll)
 // Re-using watchPollResult as a result, but only the Error component is going to be used.
-func watchPollCompletionTerminationWorker(c helix.Client, channelID string, pollID string, resultChan chan<- WatchPollResult, doneChan <-chan os.Signal) {
+func watchPollCompletionTerminationWorker(c *helix.Client, channelID string, pollID string, resultChan chan<- WatchPollResult, doneChan <-chan os.Signal) {
 	defer close(resultChan)
 	for {
 		select {
@@ -138,7 +138,7 @@ func watchPollCompletionTerminationWorker(c helix.Client, channelID string, poll
 
 // Internal watchPollCompletion worker function
 // NOTE: It could be broken into some smaller functions if desired, but not critical right now.
-func watchPollCompletionWorker(c helix.Client, channelID string, pollID string, resultChan chan<- WatchPollResult) {
+func watchPollCompletionWorker(c *helix.Client, channelID string, pollID string, resultChan chan<- WatchPollResult) {
 	defer close(resultChan)
 	pollGetFailCount := 0
 	for {
@@ -203,7 +203,7 @@ func watchPollCompletionWorker(c helix.Client, channelID string, pollID string, 
 }
 
 // watchPollCompletion checks the status of the poll and prints the results when completed.
-func watchPollCompletion(c helix.Client, channelID string, pollID string) (string, error) {
+func watchPollCompletion(c *helix.Client, channelID string, pollID string) (string, error) {
 	resultChan := make(chan WatchPollResult)
 	termResultChan := make(chan WatchPollResult)
 	doneChan := make(chan os.Signal, 1)

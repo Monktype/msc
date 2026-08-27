@@ -6,7 +6,7 @@ import (
 	"github.com/nicklaw5/helix/v2"
 )
 
-func StartCommercial(c helix.Client, channelID string, length helix.AdLengthEnum) error {
+func StartCommercial(c *helix.Client, channelID string, length helix.AdLengthEnum) error {
 	resp, err := c.StartCommercial(&helix.StartCommercialParams{
 		BroadcasterID: channelID,
 		Length:        length,

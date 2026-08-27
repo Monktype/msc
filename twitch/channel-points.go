@@ -28,7 +28,7 @@ type ChannelCustomRewardsParams struct {
 
 // CreateReward creates a Twitch custom channel points reward with the given ChannelCustomRewardsParams.
 // Returns error.
-func CreateReward(c helix.Client, params helix.ChannelCustomRewardsParams) (string, error) {
+func CreateReward(c *helix.Client, params helix.ChannelCustomRewardsParams) (string, error) {
 	resp, err := c.CreateCustomReward(&params)
 	if err != nil {
 		fmt.Printf("Creating a reward failed: %s\n", err)
@@ -45,7 +45,7 @@ func CreateReward(c helix.Client, params helix.ChannelCustomRewardsParams) (stri
 
 // DeleteReward deletes a Twitch custom channel points reward with the given channel ID and reward ID.
 // Returns error.
-func DeleteReward(c helix.Client, channelID string, rewardID string) error {
+func DeleteReward(c *helix.Client, channelID string, rewardID string) error {
 	resp, err := c.DeleteCustomRewards(&helix.DeleteCustomRewardsParams{
 		BroadcasterID: channelID,
 		ID:            rewardID,
@@ -65,7 +65,7 @@ func DeleteReward(c helix.Client, channelID string, rewardID string) error {
 
 // GetRewards gets Twitch custom channel points rewards for the given channel ID.
 // Returns []helix.ChannelCustomReward and error.
-func GetRewards(c helix.Client, channelID string) ([]helix.ChannelCustomReward, error) {
+func GetRewards(c *helix.Client, channelID string) ([]helix.ChannelCustomReward, error) {
 	var emptyRewards []helix.ChannelCustomReward
 
 	resp, err := c.GetCustomRewards(&helix.GetCustomRewardsParams{
@@ -84,14 +84,26 @@ func GetRewards(c helix.Client, channelID string) ([]helix.ChannelCustomReward, 
 }
 
 // GetRedemptions gets Twitch custom channel points rewards' redemptions for the given channel ID, reward ID, and status.
+// `after` is a pagination cursor from a previous response to fetch the next page; `first` is the page size (max 50).
+// Both are optional: an empty `after` and a `first` of 0 are omitted from the request, preserving the prior default behavior.
 // Returns []helix.ChannelCustomRewardsRedemption and error.
-func GetRedemptions(c helix.Client, channelID string, rewardID string, status string) ([]helix.ChannelCustomRewardsRedemption, error) {
+//
+// Pagination caveat: `after` lets you continue from a cursor you already have, but this
+// function does NOT return the next-page cursor. The helix v2 response struct for this
+// endpoint (ManyChannelCustomRewardsRedemptions) omits the `pagination` field, so the
+// cursor Twitch sends is dropped. To page forward today, obtain the cursor another way
+// (e.g. a direct HTTP GET on the redemptions endpoint). This could be added here like
+// GetBannedUsers/GetPredictions once helix captures Pagination for this endpoint
+// (a one-line upstream fix, or a local fork).
+func GetRedemptions(c *helix.Client, channelID string, rewardID string, status string, after string, first int) ([]helix.ChannelCustomRewardsRedemption, error) {
 	var emptyRedemption []helix.ChannelCustomRewardsRedemption
 
 	resp, err := c.GetCustomRewardsRedemptions(&helix.GetCustomRewardsRedemptionsParams{
 		BroadcasterID: channelID,
 		RewardID:      rewardID,
 		Status:        status,
+		After:         after,
+		First:         first,
 	})
 	if err != nil {
 		fmt.Printf("Getting channel reward redeptions failed: %s\n", err)
@@ -107,7 +119,7 @@ func GetRedemptions(c helix.Client, channelID string, rewardID string, status st
 
 // CancelRedemption cancels a Twitch custom channel points rewards' redemption for the given channel ID, reward ID, and redemption ID.
 // Returns []helix.ChannelCustomRewardsRedemption and error.
-func CancelRedemption(c helix.Client, channelID string, rewardID string, redemptionID string) ([]helix.ChannelCustomRewardsRedemption, error) {
+func CancelRedemption(c *helix.Client, channelID string, rewardID string, redemptionID string) ([]helix.ChannelCustomRewardsRedemption, error) {
 	var emptyRedemption []helix.ChannelCustomRewardsRedemption
 
 	resp, err := c.UpdateChannelCustomRewardsRedemptionStatus(&helix.UpdateChannelCustomRewardsRedemptionStatusParams{
@@ -130,7 +142,7 @@ func CancelRedemption(c helix.Client, channelID string, rewardID string, redempt
 
 // FulfillRedemption fulfills a Twitch custom channel points rewards' redemption for the given channel ID, reward ID, and redemption ID.
 // Returns []helix.ChannelCustomRewardsRedemption and error.
-func FulfillRedemption(c helix.Client, channelID string, rewardID string, redemptionID string) ([]helix.ChannelCustomRewardsRedemption, error) {
+func FulfillRedemption(c *helix.Client, channelID string, rewardID string, redemptionID string) ([]helix.ChannelCustomRewardsRedemption, error) {
 	var emptyRedemption []helix.ChannelCustomRewardsRedemption
 
 	resp, err := c.UpdateChannelCustomRewardsRedemptionStatus(&helix.UpdateChannelCustomRewardsRedemptionStatusParams{

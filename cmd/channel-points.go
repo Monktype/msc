@@ -180,12 +180,22 @@ var rewardsredemptionsCmd = &cobra.Command{
 			return fmt.Errorf("status string is incorrect")
 		}
 
+		after, err := cmd.Flags().GetString("after")
+		if err != nil {
+			return err
+		}
+
+		first, err := cmd.Flags().GetInt("first")
+		if err != nil {
+			return err
+		}
+
 		channelid, err := twitch.GetUserID(c, channelname)
 		if err != nil {
 			return err
 		}
 
-		redemptions, err := twitch.GetRedemptions(c, channelid, rewardid, status)
+		redemptions, err := twitch.GetRedemptions(c, channelid, rewardid, status, after, first)
 		if err != nil {
 			return err
 		}
