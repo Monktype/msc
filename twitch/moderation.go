@@ -6,6 +6,21 @@ import (
 	"github.com/nicklaw5/helix/v2"
 )
 
+// apiError turns a failed helix response into an error that carries Twitch's
+// own status code and message (e.g. a 403's "You don't have permission..."),
+// so callers — API handlers, CLI output — can show something actionable
+// instead of a generic "check status code information".
+func apiError(rc helix.ResponseCommon) error {
+	msg := rc.ErrorMessage
+	if msg == "" {
+		msg = rc.Error
+	}
+	if msg == "" {
+		msg = "unexpected status"
+	}
+	return fmt.Errorf("twitch HTTP %d: %s", rc.StatusCode, msg)
+}
+
 // BannedUsersPage is one page of banned/timed-out users returned by GetBannedUsers.
 // Cursor is the cursor to pass as `after` to GetBannedUsers to fetch the next page;
 // it is "" when there is no next page.
@@ -34,7 +49,7 @@ func GetBannedUsers(c *helix.Client, channelID string, after string) (BannedUser
 	}
 	if resp.StatusCode >= 300 {
 		fmt.Printf("Status code was bad: %v\n", resp)
-		return page, fmt.Errorf("check status code information")
+		return page, apiError(resp.ResponseCommon)
 	}
 
 	page.Bans = resp.Data.Bans
@@ -90,7 +105,7 @@ func BanUser(c *helix.Client, moderatorID string, channelID string, targetID str
 	}
 	if resp.StatusCode >= 300 {
 		fmt.Printf("Status code was bad: %v\n", resp)
-		return fmt.Errorf("check status code information")
+		return apiError(resp.ResponseCommon)
 	}
 
 	return nil
@@ -111,7 +126,7 @@ func UnbanUser(c *helix.Client, moderatorID string, channelID string, targetID s
 	}
 	if resp.StatusCode >= 300 {
 		fmt.Printf("Status code was bad: %v\n", resp)
-		return fmt.Errorf("check status code information")
+		return apiError(resp.ResponseCommon)
 	}
 
 	return nil
